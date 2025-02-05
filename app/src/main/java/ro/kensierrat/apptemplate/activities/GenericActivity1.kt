@@ -28,6 +28,7 @@ import ro.kensierrat.apptemplate.domain.GenericGrouping
 import ro.kensierrat.apptemplate.domain.GenericModel
 import ro.kensierrat.apptemplate.server.ServerApiHelper
 import ro.kensierrat.apptemplate.server.ServerBridgeCoroutine
+import ro.kensierrat.apptemplate.services.RetrofitModule
 import ro.kensierrat.apptemplate.views.GenericActivity1RecyclerViewAdapter
 import ro.kensierrat.apptemplate.views.GenericRecyclerViewAdapter
 import java.util.Dictionary
@@ -37,12 +38,15 @@ class GenericActivity1 : ComponentActivity() {
     val tempDictionary : MutableMap<String, Int> = mutableMapOf("01" to 0, "02" to 0, "03" to 0, "04" to 0, "05" to 0, "06" to 0, "07" to 0, "08" to 0, "09" to 0, "10" to 0, "11" to 0, "12" to 0)
     val adapter = GenericActivity1RecyclerViewAdapter(data)
 
-    val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:2528/") // Replace with your local server address
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    val apiService = retrofit.create(ServerApiHelper::class.java)
-    val serverBridge = ServerBridgeCoroutine(apiService)
+//    val retrofit = Retrofit.Builder()
+//        .baseUrl("http://10.0.2.2:2528/") // Replace with your local server address
+//        .addConverterFactory(GsonConverterFactory.create())
+//        .build()
+//    val apiService = retrofit.create(ServerApiHelper::class.java)
+//    val serverBridge = ServerBridgeCoroutine(apiService)
+
+    val RetrofitInit = RetrofitModule.getInstance()
+    val serverBridge = RetrofitInit.serverBridge
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

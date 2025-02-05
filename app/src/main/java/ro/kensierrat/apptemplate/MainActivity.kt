@@ -23,6 +23,7 @@ import ro.kensierrat.apptemplate.domain.GenericModel
 import ro.kensierrat.apptemplate.server.DBHelper
 import ro.kensierrat.apptemplate.server.ServerApiHelper
 import ro.kensierrat.apptemplate.server.ServerBridgeCoroutine
+import ro.kensierrat.apptemplate.services.RetrofitModule
 import ro.kensierrat.apptemplate.views.GenericRecyclerViewAdapter
 import java.util.UUID
 
@@ -30,12 +31,15 @@ class MainActivity : ComponentActivity() {
     var data = mutableListOf<GenericModel>()
     val adapter = GenericRecyclerViewAdapter(data)
 
-    val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:2528/") // Replace with your local server address
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    val apiService = retrofit.create(ServerApiHelper::class.java)
-    val serverBridge = ServerBridgeCoroutine(apiService)
+//    val retrofit = Retrofit.Builder()
+//        .baseUrl("http://10.0.2.2:2528/") // Replace with your local server address
+//        .addConverterFactory(GsonConverterFactory.create())
+//        .build()
+//    val apiService = retrofit.create(ServerApiHelper::class.java)
+//    val serverBridge = ServerBridgeCoroutine(apiService)
+
+    val RetrofitInit = RetrofitModule.getInstance()
+    val serverBridge = RetrofitInit.serverBridge
 
     val db = DBHelper(this)
 
@@ -110,6 +114,7 @@ class MainActivity : ComponentActivity() {
             .setNeutralButton("USE LOCAL DB") { dialog, id ->
                 data.addAll(db.getAllGenerics())
                 adapter.notifyDataSetChanged()
+                Log.i("DBCONN", "RETRIEVED ALL DATA FROM LOCAL DB")
             }
             .setNegativeButton("EXIT") { dialog, id ->
                 finish()
