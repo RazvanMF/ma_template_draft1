@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.Toast
@@ -12,8 +14,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import ro.kensierrat.apptemplate.activities.AddActivity
 import ro.kensierrat.apptemplate.activities.EditActivity
 import ro.kensierrat.apptemplate.activities.GenericActivity1
@@ -21,11 +23,10 @@ import ro.kensierrat.apptemplate.activities.GenericActivity2
 import ro.kensierrat.apptemplate.activities.InfoActivity
 import ro.kensierrat.apptemplate.domain.GenericModel
 import ro.kensierrat.apptemplate.server.DBHelper
-import ro.kensierrat.apptemplate.server.ServerApiHelper
-import ro.kensierrat.apptemplate.server.ServerBridgeCoroutine
+import ro.kensierrat.apptemplate.services.OkHttpWSModule
+import ro.kensierrat.apptemplate.services.RagtagWebSocketListener
 import ro.kensierrat.apptemplate.services.RetrofitModule
 import ro.kensierrat.apptemplate.views.GenericRecyclerViewAdapter
-import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     var data = mutableListOf<GenericModel>()
@@ -40,6 +41,20 @@ class MainActivity : ComponentActivity() {
 
     val RetrofitInit = RetrofitModule.getInstance()
     val serverBridge = RetrofitInit.serverBridge
+
+//    val client = OkHttpClient()
+//    val request = Request.Builder().url("ws://10.0.2.2:2528").build()
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    val context = this@MainActivity
+
+//    val listener = RagtagWebSocketListener(mainHandler, context)
+//    val webSocket = client.newWebSocket(request, listener)
+
+    val WebsocketInit = OkHttpWSModule.getInstance()
+    val initStep1 = WebsocketInit.initWebSocketInfo(mainHandler, context)
+    val initStep2 = WebsocketInit.initWebSocket()
+    val webSocket = WebsocketInit.socket
 
     val db = DBHelper(this)
 

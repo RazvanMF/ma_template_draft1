@@ -39,7 +39,7 @@ class EditActivity : ComponentActivity() {
             genericString = generic.genericString
 
             dateField.setText(genericDate)
-            intField.setText(genericInt)
+            intField.setText(genericInt.toString())
             stringField.setText(genericString)
         }
     }
