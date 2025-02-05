@@ -187,4 +187,70 @@ class DBHelper(private val context: Context) :
         return item
     }
 
+
+    fun deleteGeneric(id: Int) {
+        val db = writableDatabase
+        try {
+            val rowsDeleted = db.delete(TABLE_NAME, "$ID_COL = ?", arrayOf(id.toString()))
+            if (rowsDeleted == 0) {
+                Log.e("ItemsDbHelper", "No rows deleted for ID: $id")
+                Toast.makeText(context, "No item found to delete", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: SQLException) {
+            Log.e("ItemsDbHelper", "Database deletion error: ${e.message}")
+            Toast.makeText(context, "Database error during deletion", Toast.LENGTH_SHORT).show()
+        } finally {
+            db.close()
+        }
+    }
+
+    /*
+    *
+    fun deleteAlbumByUUID(id: String) {
+        val db = writableDatabase
+        try {
+            val rowsDeleted = db.delete(TABLE_NAME, "$UUID_COL = ?", arrayOf(id))
+            if (rowsDeleted == 0) {
+                Log.e("ItemsDbHelper", "No rows deleted for ID: $id")
+                Toast.makeText(context, "No item found to delete", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: SQLException) {
+            Log.e("ItemsDbHelper", "Database deletion error: ${e.message}")
+            Toast.makeText(context, "Database error during deletion", Toast.LENGTH_SHORT).show()
+        } finally {
+            db.close()
+        }
+    }
+
+    fun updateItem(item: AlbumModel) {
+        val db = writableDatabase
+        try {
+            val values = ContentValues().apply {
+                put(TITLE_COL, item.title)
+                put(ARTIST_COL, item.artist)
+                put(GENRE_COL, item.genreAsString())
+                put(STYLE_COL, item.styleAsString())
+                put(RELEASE_COL, item.release)
+                put(COVER_COL, item.localCover)
+            }
+            val rowsAffected = db.update(
+                TABLE_NAME,
+                values,
+                "$UUID_COL = ?",
+                arrayOf(item.id.toString())
+            )
+            if (rowsAffected == 0) {
+                Log.e("ItemsDbHelper", "No rows updated for ID: ${item.id}")
+                Toast.makeText(context, "No item found to update", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: SQLException) {
+            Log.e("ItemsDbHelper", "Database update error: ${e.message}")
+            Toast.makeText(context, "Database error during update", Toast.LENGTH_SHORT).show()
+        } finally {
+            db.close()
+        }
+    }
+    *
+    * */
+
 }

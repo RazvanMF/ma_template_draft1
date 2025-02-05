@@ -134,6 +134,7 @@ class MainActivity : ComponentActivity() {
                             "SUCCESSFULLY DELETED GENERIC ITEM #\"${model.id}\"",
                             Toast.LENGTH_SHORT
                         ).show()
+                        db.deleteGeneric(model.id)  // !!!
                         adapter.notifyItemRemoved(position)
                     }
                     .setNegativeButton("No") {dialog, id ->
@@ -195,6 +196,7 @@ class MainActivity : ComponentActivity() {
                     serverBridge.postGeneric(newGeneric) {response ->
                         this.data.add(response!!)
                         adapter.notifyItemInserted(this.data.size - 1)
+                        db.addGeneric(response) // !!!
                     }
 
                     Toast.makeText(this, "SUCCESSFULLY ADDED NEW GENERIC", Toast.LENGTH_SHORT).show()
