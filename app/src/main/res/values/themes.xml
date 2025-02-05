@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.Exam2025_try2" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.AppCompat.Light" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

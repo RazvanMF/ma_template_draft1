@@ -253,4 +253,8 @@ class DBHelper(private val context: Context) :
     *
     * */
 
+    fun updateGeneric(id: Int, genericModel: GenericModel) {
+        TODO()
+    }
+
 }

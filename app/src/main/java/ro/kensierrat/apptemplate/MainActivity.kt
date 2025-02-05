@@ -15,13 +15,16 @@ import androidx.recyclerview.widget.RecyclerView
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ro.kensierrat.apptemplate.activities.AddActivity
+import ro.kensierrat.apptemplate.activities.EditActivity
 import ro.kensierrat.apptemplate.activities.GenericActivity1
 import ro.kensierrat.apptemplate.activities.GenericActivity2
+import ro.kensierrat.apptemplate.activities.InfoActivity
 import ro.kensierrat.apptemplate.domain.GenericModel
 import ro.kensierrat.apptemplate.server.DBHelper
 import ro.kensierrat.apptemplate.server.ServerApiHelper
 import ro.kensierrat.apptemplate.server.ServerBridgeCoroutine
 import ro.kensierrat.apptemplate.views.GenericRecyclerViewAdapter
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     var data = mutableListOf<GenericModel>()
@@ -54,11 +57,11 @@ class MainActivity : ComponentActivity() {
         val launcherForActivity1 = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
         {
             if (it.resultCode == Activity.RESULT_OK || it.resultCode == Activity.RESULT_CANCELED) {
-                Log.i("ui interaction info", "SUCCESSFULLY RETURNED FROM ACTIVITY 1")
+                Log.i("INTERACTION", "SUCCESSFULLY RETURNED FROM ACTIVITY 1")
             }
         }
         activity1button.setOnClickListener {
-            Log.i("ui interaction info", "OPENED ACTIVITY 1 FROM MAIN")
+            Log.i("INTERACTION", "OPENED ACTIVITY 1 FROM MAIN")
             val intent: Intent = Intent(this, GenericActivity1::class.java)
             launcherForActivity1.launch(intent)
         }
@@ -67,11 +70,11 @@ class MainActivity : ComponentActivity() {
         val launcherForActivity2 = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
         {
             if (it.resultCode == Activity.RESULT_OK) {
-                Log.i("ui interaction info", "SUCCESSFULLY RETURNED FROM ACTIVITY 2")
+                Log.i("INTERACTION", "SUCCESSFULLY RETURNED FROM ACTIVITY 2")
             }
         }
         activity2button.setOnClickListener {
-            Log.i("ui interaction info", "OPENED ACTIVITY 2 FROM MAIN")
+            Log.i("INTERACTION", "OPENED ACTIVITY 2 FROM MAIN")
             val intent: Intent = Intent(this, GenericActivity2::class.java)
             launcherForActivity2.launch(intent)
         }
@@ -88,7 +91,9 @@ class MainActivity : ComponentActivity() {
                         db.addGeneric(generic)
                     }
                     adapter.notifyDataSetChanged() // Ensure RecyclerView updates
+                    Log.i("SERVCONN", "RETRIEVED ALL DATA FROM THE SERVER")
                 } else {
+                    Log.e("SERVCONN", "FAILED TO RETRIEVE DATA. PROMPTING USER...")
                     showFetchErrorDialog()
                 }
             }
@@ -103,7 +108,7 @@ class MainActivity : ComponentActivity() {
                 retrieveFromServer()
             }
             .setNeutralButton("USE LOCAL DB") { dialog, id ->
-                data.addAll(db.getAllGenerics()) // Add offline data
+                data.addAll(db.getAllGenerics())
                 adapter.notifyDataSetChanged()
             }
             .setNegativeButton("EXIT") { dialog, id ->
@@ -146,6 +151,70 @@ class MainActivity : ComponentActivity() {
             }
         })
 
+        val editLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                val retrievedData: Intent? = it.data
+                val editedGeneric = retrievedData?.getParcelableExtra(
+                    "COMPONENT_RETURNED",
+                    GenericModel::class.java
+                )
+                val position = retrievedData?.getParcelableExtra("POSITION", Integer::class.java)
+                Log.e("F", position.toString())
+                if (editedGeneric != null) {
+                    data[position!!.toInt()] = editedGeneric
+                    serverBridge.putGeneric(editedGeneric.id, editedGeneric) {
+                        this.data[position.toInt()] = editedGeneric
+                        adapter.notifyItemInserted(this.data.size - 1)
+                            // db.updateGeneric(editedGeneric.id, editedGeneric)
+                    }
+                    adapter.notifyItemChanged(position.toInt())
+                    Log.i("SERVCONN", "SUCCESSFULLY UPLOADED UPDATED ALBUM")
+                }
+            }
+        }
+
+        adapter.setOnEditButtonPress(object : GenericRecyclerViewAdapter.OnClickListener {
+            override fun onClick(position: Int, model: GenericModel, id: Int) {
+                Log.i("INTERACTION", "OPENED UPDATE PAGE")
+                val intent: Intent = Intent(this@MainActivity, EditActivity::class.java)
+                intent.putExtra("OLD_MODEL", model)
+                intent.putExtra("POSITION", position)
+                editLauncher.launch(intent)
+            }
+        })
+
+        val infoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            Log.i("INTERACTION", "RETURNED FROM INFO PAGE")
+        }
+
+        adapter.setOnInfoButtonPress(object :  GenericRecyclerViewAdapter.OnClickListener {
+            override fun onClick(position: Int, model: GenericModel, id: Int) {
+                Log.i("INTERACTION", "PREPARING TO OPEN INFO PAGE")
+                serverBridge.fetchGeneric(model.id) { response ->
+                    val information: String
+                    if (response != null) {
+                        information = "SERVER INFORMATION:\nGENERIC #${response.id}\n\n\tDATE: ${response.genericDate}\n\tINT: ${response.genericInt}\n\tSTRING: ${response.genericString}"
+                        if (db.getComplexGeneric(response.id).id == -1)
+                            db.addComplexGeneric(response)
+
+                    }
+                    else {
+                        // val failsafe = db.getGeneric(model.id)
+                        val failsafe = db.getComplexGeneric(model.id)
+                        if (failsafe.id != -1)
+                            information = "LOCAL INFORMATION:\nGENERIC #${failsafe.id}\n\n\tDATE: ${failsafe.genericDate}\n\tINT: ${failsafe.genericInt}\n\tSTRING: ${failsafe.genericString}"
+                        else
+                            information = "LOCAL INFORMATION:\nNON-EXISTENT"
+                    }
+
+                    val intent = Intent(this@MainActivity, InfoActivity::class.java)
+                    intent.putExtra("INFORMATION", information)
+                    infoLauncher.launch(intent)
+                }
+            }
+        })
+
+        /*
         adapter.setOnInfoButtonPress(object : GenericRecyclerViewAdapter.OnClickListener {
             override fun onClick(position: Int, model: GenericModel, id: Int) {
                 Log.i("lmao", "OPENED INFO PAGE")
@@ -182,6 +251,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
+         */
 
         // the global add button
         val addbutton: ImageButton = findViewById(R.id.genericItemAddButton)
@@ -200,12 +270,12 @@ class MainActivity : ComponentActivity() {
                     }
 
                     Toast.makeText(this, "SUCCESSFULLY ADDED NEW GENERIC", Toast.LENGTH_SHORT).show()
-                    Log.i("lmao", "SUCCESSFULLY UPLOADED NEW ALBUM")
+                    Log.i("SERVCONN", "SUCCESSFULLY UPLOADED NEW ALBUM")
                 }
             }
         }
         addbutton.setOnClickListener {
-            Log.i("lmao", "OPENED ADD PAGE")
+            Log.i("INTERACTION", "OPENED ADD PAGE")
             val intent: Intent = Intent(this, AddActivity::class.java)
             launcher.launch(intent)
         }

@@ -3,4 +3,6 @@
     <string name="title_activity_add">AddActivity</string>
     <string name="title_activity_generic1">GenericActivity1</string>
     <string name="title_activity_generic2">GenericActivity2</string>
+    <string name="title_activity_info">InfoActivity</string>
+    <string name="title_activity_edit">EditActivity</string>
 </resources>
