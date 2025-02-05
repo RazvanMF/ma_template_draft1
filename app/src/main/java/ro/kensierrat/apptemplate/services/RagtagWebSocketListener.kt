@@ -1,7 +1,10 @@
 package ro.kensierrat.apptemplate.services
 
+import android.graphics.Color
 import android.os.Handler
 import android.util.Log
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import okhttp3.Response
@@ -10,11 +13,18 @@ import okhttp3.WebSocketListener
 import okio.ByteString
 import ro.kensierrat.apptemplate.MainActivity
 
-class RagtagWebSocketListener(val handler: Handler, val context: ComponentActivity) : WebSocketListener() {
+class RagtagWebSocketListener(val handler: Handler, val context: ComponentActivity, val infobit: TextView, val button: Button) : WebSocketListener() {
     override fun onOpen(webSocket: WebSocket, response: Response) {
         Log.i("WSCONN", "ESTABLISHED WEBSOCKET CONNECTION")
         // Send an initial message to the server if needed
         webSocket.send("Hello from client!")
+
+        handler.post {
+            infobit.setTextColor(Color.parseColor("#00ff00"))
+            infobit.text = "ONLINE"
+            button.isEnabled = false
+        }
+
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
@@ -39,5 +49,11 @@ class RagtagWebSocketListener(val handler: Handler, val context: ComponentActivi
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         Log.e("WSCONN","WEBSOCKET ERROR: ${t.message}")
         t.printStackTrace()
+
+        handler.post {
+            infobit.setTextColor(Color.parseColor("#ff0000"))
+            infobit.text = "OFFLINE"
+            button.isEnabled = true
+        }
     }
 }

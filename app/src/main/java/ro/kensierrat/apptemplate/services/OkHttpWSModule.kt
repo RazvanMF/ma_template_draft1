@@ -1,6 +1,8 @@
 package ro.kensierrat.apptemplate.services
 
 import android.os.Handler
+import android.widget.Button
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import kotlinx.coroutines.InternalCoroutinesApi
 import okhttp3.OkHttpClient
@@ -31,16 +33,21 @@ class OkHttpWSModule private constructor() {
     private var listener: RagtagWebSocketListener? = null
     public var socket: WebSocket? = null
 
-    public fun initWebSocketInfo(handler: Handler, context: ComponentActivity) {
+    private var infobit: TextView? = null
+    private var retrybutton: Button? = null
+
+    public fun initWebSocketInfo(handler: Handler, context: ComponentActivity, info: TextView, button: Button) {
         if (parentContext == null && parentHandler == null) {
             parentHandler = handler
             parentContext = context
+            infobit = info
+            retrybutton = button
         }
     }
 
     public fun initWebSocket() {
-        if (listener == null && socket == null) {
-            listener = RagtagWebSocketListener(parentHandler!!, parentContext!!)
+        if (parentContext != null && parentHandler != null) {
+            listener = RagtagWebSocketListener(parentHandler!!, parentContext!!, infobit!!, retrybutton!!)
             socket = client.newWebSocket(request, listener!!)
         }
     }

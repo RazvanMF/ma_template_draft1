@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Button
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -44,17 +46,11 @@ class MainActivity : ComponentActivity() {
 
 //    val client = OkHttpClient()
 //    val request = Request.Builder().url("ws://10.0.2.2:2528").build()
-
-    private val mainHandler = Handler(Looper.getMainLooper())
-    val context = this@MainActivity
-
+//    val mainHandler = Handler(Looper.getMainLooper())
+//    val context = this@MainActivity
 //    val listener = RagtagWebSocketListener(mainHandler, context)
 //    val webSocket = client.newWebSocket(request, listener)
-
     val WebsocketInit = OkHttpWSModule.getInstance()
-    val initStep1 = WebsocketInit.initWebSocketInfo(mainHandler, context)
-    val initStep2 = WebsocketInit.initWebSocket()
-    val webSocket = WebsocketInit.socket
 
     val db = DBHelper(this)
 
@@ -99,6 +95,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    fun prepareWebsocketConnection() {
+        val mainHandler = Handler(Looper.getMainLooper())
+        val context = this@MainActivity
+        val infobit = findViewById<TextView>(R.id.connectionStatusText)
+        val button = findViewById<Button>(R.id.retryButton)
+        button.setOnClickListener {
+            retrieveFromServer()
+        }
+        val initStep1 = WebsocketInit.initWebSocketInfo(mainHandler, context, infobit, button)
+        val initStep2 = WebsocketInit.initWebSocket()
+        val webSocket = WebsocketInit.socket
+    }
+
     fun retrieveFromServer() {
         serverBridge.fetchGenerics { genericsList ->
             runOnUiThread { // Ensure UI updates happen on the main thread
@@ -109,8 +118,12 @@ class MainActivity : ComponentActivity() {
                     for (generic in genericsList) {
                         db.addGeneric(generic)
                     }
+
                     adapter.notifyDataSetChanged() // Ensure RecyclerView updates
                     Log.i("SERVCONN", "RETRIEVED ALL DATA FROM THE SERVER")
+
+                    prepareWebsocketConnection()
+                    Log.i("WSCONN-MAINSTREAM", "ESTABLISHED WEBSOCKET CONNECTION")
                 } else {
                     Log.e("SERVCONN", "FAILED TO RETRIEVE DATA. PROMPTING USER...")
                     showFetchErrorDialog()
